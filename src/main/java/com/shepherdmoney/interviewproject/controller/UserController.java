@@ -1,26 +1,42 @@
 package com.shepherdmoney.interviewproject.controller;
 
 import com.shepherdmoney.interviewproject.vo.request.CreateUserPayload;
+import com.shepherdmoney.interviewproject.repository.UserRepository;
+import com.shepherdmoney.interviewproject.exception.ApiRequestException;
+import com.shepherdmoney.interviewproject.model.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
 
-    // TODO: wire in the user repository (~ 1 line)
+    private final UserRepository repository;
+
+    UserController(UserRepository repository) {
+        this.repository = repository;
+    }
 
     @PutMapping("/user")
     public ResponseEntity<Integer> createUser(@RequestBody CreateUserPayload payload) {
-        // TODO: Create an user entity with information given in the payload, store it in the database
-        //       and return the id of the user in 200 OK response
-        return null;
+        // Check valid request param
+        if (payload == null) throw new ApiRequestException("Payload is null");
+        String name = payload.getName();
+        String email = payload.getEmail();
+
+        // Required Args will check for valid args
+        User newUser = User.of(name, email);
+        return ResponseEntity.status(HttpStatus.OK)
+                             .body(repository.save(newUser).getId());
     }
 
     @DeleteMapping("/user")
     public ResponseEntity<String> deleteUser(@RequestParam int userId) {
-        // TODO: Return 200 OK if a user with the given ID exists, and the deletion is successful
-        //       Return 400 Bad Request if a user with the ID does not exist
-        //       The response body could be anything you consider appropriate
-        return null;
+        // If user does not exist, throw ApiException
+        if (!repository.findById(userId).isPresent()) throw new ApiRequestException("User not found in DB");
+        // Delete and return
+        repository.deleteById(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                             .body("User successfully deleted");
     }
 }

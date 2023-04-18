@@ -2,15 +2,21 @@ package com.shepherdmoney.interviewproject.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.NonNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "of")
+@NoArgsConstructor
 @Table(name = "MyUser")
 public class User {
 
@@ -18,11 +24,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    @NonNull
     private String name;
 
+    @NonNull
     private String email;
 
-    // TODO: User's credit card
-    // HINT: A user can have one or more, or none at all. We want to be able to query credit cards by user
-    //       and user by a credit card.
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<CreditCard> cards = new ArrayList<CreditCard>();
+
+    public boolean addCard(CreditCard card) {
+        return cards.add(card);
+    }
 }
